@@ -141,7 +141,7 @@ Bob never saw the seed and is reached only through a file Alice wrote in a later
 | Corpus | Seed variants (canary only) and benign documents | `lab/corpus/` |
 | Harness: agent loop, tools, memory | Run sessions and tool calls; keep memory notes and provenance (writer, readers) for files and notes | `lab/harness/` |
 | Defense hooks | `allowlist`, `memscreen`, `shared-strict`, `custom` behind `--defense` | `lab/defenses/` |
-| Model client, cache | Chat completions over `httpx`; record in live mode, serve back in replay | `lab/harness/`, `replay/` |
+| Model client, cache | Chat completions over `httpx` with per-model request settings; record in live mode, serve back in replay | `lab/harness/`, `replay/` |
 | Run folder | Per-run memory, private folders, `shared/`, `egress.log`, run log | `runs/<id>/` |
 | Scorer | Infection per hop with confidence intervals, benign success, PASS or FAIL; writes CSV and JSON | `lab/score.py` |
 | Dashboard, leaderboard | Draw the chain and light up infected assistants; rank defenses against the pass rule | `dashboard/` |
@@ -152,4 +152,5 @@ Bob never saw the seed and is reached only through a file Alice wrote in a later
 - **Defenses are hooks.** Each is a plain Python function that sees every tool call before it runs and every result before the model reads it. `custom` has the same signature, so attendee defenses are scored like ours.
 - **Replay first.** Every model request body and reply is recorded, never the auth token. `--mode replay` reproduces the numbers offline at no cost. The workshop starts in replay and falls back to it if the Wi-Fi fails.
 - **Vendor neutral.** Any endpoint is a base URL, a model name and, if needed, a token. Attendees get a proxy token, never our provider key. The `memscreen` classifier uses the same client, so it is recorded and budgeted too.
+- **Default model `gpt-6-luna`, settings per model.** It is the cheapest current GPT ($0.10/$0.50 per 1M tokens, in/out), and tool calls only work with `reasoning_effort "none"` (its default is "medium"), so the model client keeps per-model request settings and sends `reasoning_effort "none"` on every call; swapping models later is a config entry, not code.
 - **Deterministic scoring.** `score.py` reads only `runs/`, reports each signal separately and combined, and checks benign tasks with fixed rules, not model graders.
