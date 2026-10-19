@@ -1,0 +1,58 @@
+/* Armorer Graphite tokens (armorer-console packages/web/theme/palette.ts, 2026-09-28), light set.
+   Rules carried over: zinc neutrals, colour only where it means something, a card is a hairline and
+   one tone step (no shadow), 12px card radius, and no dotted or dashed lines anywhere. */
+@font-face { font-family: "Geist"; src: url("fonts/geist-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+
+:root {
+  color-scheme: light;
+  --canvas: #fafafa; --bg: #ffffff; --panel: #fafafa; --panel-strong: #f4f4f5;
+  --line: #e4e4e7; --line-strong: #d4d4d8; --line-soft: #ececee; --line-control: #8b8b93;
+  --text: #18181b; --text-soft: #3f3f46; --muted: #67676f;
+  --accent: #0e7a5f; --accent-text: #0e7a5f; --accent-tint: #ebf5f1; --accent-border: #b6dacb;
+  --mark-a-left: #2fb48a; --mark-a-right: #0e7a5f; --mark-l: #0b3e38;
+  --warning: #a35f06; --warning-tint: #fef7e8; --warning-border: #f0d7a0;
+  --danger: #b42318; --danger-tint: #fdf1f0; --danger-border: #f2c6c1;
+  --sky: #2d64a8; --sky-tint: #eef4fb; --sky-border: #c3d6ee;
+  --viz-ok: #0d8060; --viz-warn: #c47f0e; --viz-bad: #b42318; --viz-unk: #8b8b93; --viz-bar: #71717a; --viz-track: #ececef;
+  --card-radius: 12px;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* Designed at 1280x720 CSS px and captured at 1.5x for a 1920x1080 projector. */
+.screen { width: 1280px; height: 720px; display: flex; flex-direction: column; padding: 16px 24px 18px; gap: 12px; overflow: hidden; }
+
+.topbar { display: flex; align-items: center; gap: 16px; height: 34px; }
+.lockup { display: flex; align-items: center; gap: 10px; color: var(--mark-l); }
+.lockup svg { height: 12px; width: auto; }
+.lockup .sep { width: 1px; height: 18px; background: var(--line-strong); }
+.lockup .product { font-size: 15px; font-weight: 600; color: var(--text); }
+.nav { display: flex; gap: 4px; margin-left: 12px; }
+.nav span { font-size: 13px; padding: 6px 12px; border-radius: 8px; color: var(--muted); }
+.nav span.on { background: var(--bg); color: var(--text); font-weight: 500; box-shadow: inset 0 0 0 1px var(--line); }
+.mocknote { margin-left: auto; font-size: 12px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 10px; background: var(--bg); }
+
+.runbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); white-space: nowrap; }
+.pill b { color: var(--text); font-weight: 500; }
+.pill.ok { background: var(--accent-tint); border-color: var(--accent-border); color: var(--accent-text); font-weight: 500; }
+.pill.bad { background: var(--danger-tint); border-color: var(--danger-border); color: var(--danger); font-weight: 500; }
+.pill.warn { background: var(--warning-tint); border-color: var(--warning-border); color: var(--warning); font-weight: 500; }
+.pill.info { background: var(--sky-tint); border-color: var(--sky-border); color: var(--sky); font-weight: 500; }
+.glyph { font-family: var(--font-mono); font-weight: 600; font-size: 11px; }
+
+.card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--card-radius); padding: 14px 16px; min-width: 0; min-height: 0; }
+.card-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.card-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.card-head .meta { font-size: 13px; color: var(--muted); }
+.card-head .right { margin-left: auto; display: flex; gap: 6px; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.metric { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+.mono { font-family: var(--font-mono); }
