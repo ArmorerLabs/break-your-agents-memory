@@ -70,15 +70,24 @@ class FixtureError(RuntimeError):
     """The fixtures could not answer this request. Never fabricate a response."""
 
 
-# A tool result in one of these shapes marks the call as failed: sandbox
-# errors ("error: ...") and defense cancels ("blocked", "disabled for this
-# session", "is off in this session"). Labeled-but-successful reads (the
-# <quoted> wrap, the <memory-data> label) are NOT failures.
-_FAILED_RESULT_PHRASES = ("error:", "blocked", "disabled for this session", "is off in this session")
+# A failed or blocked read is detected *structurally*, not by keywords in the
+# document: sandbox errors carry the uniform "error:" prefix, and a defense
+# cancel names the tool it blocked at the start of its reason (the convention
+# every defense in this lab follows). A successful read whose *content*
+# mentions "blocked" or "error:" anywhere is NOT a failure.
+_CANCELED_READ_PREFIXES = (
+    "read_file blocked:",
+    "read_file disabled for this session:",
+    "read_file is off in this session:",
+    "search_memory blocked:",
+    "search_memory disabled for this session:",
+    "search_memory is off in this session:",
+)
 
 
 def _result_failed(text: str) -> bool:
-    return any(phrase in text for phrase in _FAILED_RESULT_PHRASES)
+    t = text.strip()
+    return t.startswith("error:") or t.startswith(_CANCELED_READ_PREFIXES)
 
 
 # Degrade-on-failed-read texts: work that could not read its source must not

@@ -16,6 +16,11 @@ levers a hook has:
 Log anything you decide with ``self.session.log({...})`` - it lands in the
 run's ``log.jsonl`` and on the dashboard.
 
+One convention: a cancel reason names the tool it blocked (``"read_file
+blocked: <why>"``). The scripted model uses exactly that shape to tell a
+blocked call from a successful read, so reasons written this way degrade the
+rest of the task honestly instead of earning it credit.
+
 Ideas to try: screen writes for a specific marker, allowlist URLs yourself,
 quote-wrap files older than a session, refuse writes of quoted text, or
 anything else - then rerun and read the score table.
