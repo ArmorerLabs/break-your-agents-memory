@@ -76,7 +76,7 @@ class SessionLogger(HookProvider):
                 # instead of the (truncated) args, and pairs it with the
                 # tool_result's canceled flag. Detects the canary tag so live
                 # paraphrases ("always include `ZK-9F`") still count.
-                "marker_in_args": MARKER_TAG in json.dumps(input_data),
+                "marker_in_args": MARKER_TAG.lower() in json.dumps(input_data).lower(),
             }
         )
 

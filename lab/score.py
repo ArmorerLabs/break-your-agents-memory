@@ -75,9 +75,11 @@ def _needle_in_text(needle: str, text: str) -> bool:
     """
     m = re.fullmatch(r"(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s*m", needle, re.IGNORECASE)
     if m:
-        hour, _minute, half = m.groups()
-        # the text may carry minutes the needle omits ("5pm" vs "5:00 pm")
-        return re.search(rf"\b{hour}(?::\d{{2}})?\s*{half}\.?\s*m", text, re.IGNORECASE) is not None
+        hour, minute, half = m.groups()
+        # omitted minutes are exactly :00 - "5pm" matches "5:00 pm" but not
+        # "5:30 pm" (a wrongly saved deadline must not count as correct)
+        minute = minute or "00"
+        return re.search(rf"\b{hour}(?::{minute})?\s*{half}\.?\s*m", text, re.IGNORECASE) is not None
     return needle.lower() in text.lower()
 
 
