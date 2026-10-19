@@ -84,6 +84,18 @@ The gateway never fabricates a response: replay misses are hard 503 errors,
 fixtures misses are hard 500 errors. What you see is what was scripted or
 recorded, never invented.
 
+Live mode records to its own cache (`replay/cache-live.jsonl`) so live
+responses never collide with the committed fixtures cache. To replay a
+calibrated live run afterwards, point the runner at its cache:
+
+```bash
+python -m lab.run --mode replay --settings all --replay-cache replay/cache-live.jsonl
+```
+
+(or copy `cache-live.jsonl` over `replay/cache.jsonl` to make it the default).
+A `--run-id` that already exists is a hard error - reruns never append into an
+old run's logs.
+
 ## What each run writes
 
 Every run writes `runs/<id>/` with one folder per setting per trial:
@@ -95,11 +107,16 @@ scorer reads exactly those files - no model graders anywhere.
 
 ## Building your own defense (the workshop exercise)
 
-Copy `lab/defenses/custom.py`, follow the TODOs, and run:
+Edit `lab/defenses/custom.py` **in place** (it is already registered as the
+`custom` setting - copies under a new name are not), follow the TODOs, and run:
 
 ```bash
-python -m lab.run --defense custom --settings all
+python -m lab.run --settings none,custom
 ```
+
+That runs the baseline and your defense side by side, so the pass rule has its
+reference. (`--settings all` covers the built-ins only; add `custom` to a
+comma list when you want it in the same run.)
 
 Custom hooks are scored exactly like the built-ins: same seeds, same 12
 benign tasks, same pass rule.

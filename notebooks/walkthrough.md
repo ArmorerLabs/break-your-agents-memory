@@ -97,9 +97,12 @@ a hard 503.
 
 ## 6. Your defense (the exercise)
 
+Edit `lab/defenses/custom.py` **in place** (it is already registered as the
+`custom` setting - copies under a new name are not), then run it against the
+baseline:
+
 ```bash
-cp lab/defenses/custom.py lab/defenses/mydefense.py  # then follow the TODOs
-python -m lab.run --defense mydefense --settings none,mydefense
+python -m lab.run --settings none,custom
 ```
 
 Scored like the built-ins: hop-2 must drop to at most half of baseline while

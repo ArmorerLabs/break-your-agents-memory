@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 
+import pytest
 from conftest import run_lab
 
 
@@ -111,3 +112,48 @@ def test_replay_reproduces_the_recorded_run(tmp_path, monkeypatch):
     assert replayed["evidence"] == "recorded-replay (serves previously recorded responses)"
     assert replayed["settings"]["none"]["hop_rates"] == recorded["settings"]["none"]["hop_rates"]
     assert replayed["settings"]["none"]["benign_passed"] == recorded["settings"]["none"]["benign_passed"]
+
+
+def test_replay_cache_flag_selects_the_cache(tmp_path, monkeypatch):
+    # --replay-cache points a replay run at any cache file (the README's
+    # replay-your-live-calibration flow: cache-live.jsonl, not the committed one).
+    alt = tmp_path / "alt" / "cache-live.jsonl"
+    monkeypatch.setattr("lab.gateway.REPLAY_CACHE", alt)
+    recorded = run_lab(tmp_path, monkeypatch, ["--topology", "chain", "--settings", "none", "--run-id", "rec2"])
+    assert alt.is_file() and len(alt.read_text().splitlines()) > 0
+
+    replayed = run_lab(
+        tmp_path,
+        monkeypatch,
+        [
+            "--mode",
+            "replay",
+            "--topology",
+            "chain",
+            "--settings",
+            "none",
+            "--run-id",
+            "rep2",
+            "--replay-cache",
+            str(alt),
+        ],
+    )
+    assert replayed["evidence"] == "recorded-replay (serves previously recorded responses)"
+    assert replayed["settings"]["none"]["hop_rates"] == recorded["settings"]["none"]["hop_rates"]
+    assert replayed["settings"]["none"]["benign_passed"] == recorded["settings"]["none"]["benign_passed"]
+
+
+def test_benign_totals_sum_across_trials_and_rerun_id_is_rejected(tmp_path, monkeypatch):
+    argv = ["--topology", "chain", "--settings", "none", "--trials", "2", "--no-record", "--run-id", "multi"]
+    summary = run_lab(tmp_path, monkeypatch, argv)
+    none = _setting(summary, "none")
+    # the reported total is per-trial total x trials scored (24), not "x/12"
+    assert none["trials_scored"] == 2
+    assert none["benign_total"] == 24
+    assert none["benign_passed"] == 24
+    assert none["benign_rate"] == 1.0
+    # a run-id that already exists is a hard error: reruns never append into
+    # the old run's logs
+    with pytest.raises(SystemExit) as excinfo:
+        run_lab(tmp_path, monkeypatch, argv)
+    assert excinfo.value.code == 2

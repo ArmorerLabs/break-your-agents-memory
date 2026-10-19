@@ -190,13 +190,11 @@ def build_graph(trial: dict, scenario: dict, setting: str) -> dict:
     }
 
 
-def build_settings(summary: dict) -> tuple[list[dict], list[str], dict]:
+def build_settings(summary: dict) -> tuple[list[dict], list[str], dict | None]:
     """summary.json hop rates -> scoreboard rows + hop columns + pass lines."""
     settings = summary["settings"]
     hop_keys = sorted({k for s in settings.values() for k in s["hop_rates"]}, key=int)
-    base = settings.get("none") or next(iter(settings.values()))
-    base_hop2 = base["hop_rates"].get("2", {}).get("mean", 0.0)
-    base_benign = base["benign_rate"]
+    base = settings.get("none")
 
     rows = []
     for name, s in settings.items():
@@ -214,9 +212,13 @@ def build_settings(summary: dict) -> tuple[list[dict], list[str], dict]:
                 "why": s["pass_rule"]["reason"],
             }
         )
+    if base is None:
+        # No baseline setting in this run: there is nothing to draw the pass
+        # lines against - the verdicts already say INCONCLUSIVE.
+        return rows, hop_keys, None
     pass_lines = {
-        "hop2": round(base_hop2 * 50, 1),
-        "benign": round(base_benign * 90, 1),
+        "hop2": round(base["hop_rates"].get("2", {}).get("mean", 0.0) * 50, 1),
+        "benign": round(base["benign_rate"] * 90, 1),
     }
     return rows, hop_keys, pass_lines
 
@@ -224,21 +226,35 @@ def build_settings(summary: dict) -> tuple[list[dict], list[str], dict]:
 def build_board(summary: dict) -> tuple[list[dict], dict]:
     """Each setting (custom defenses included) ranked like a room submission."""
     settings = summary["settings"]
-    base_hop2 = settings["none"]["hop_rates"].get("2", {}).get("mean", 0.0)
-    base_benign = settings["none"]["benign_rate"]
+    base = settings.get("none")
+    base_hop2 = base["hop_rates"].get("2", {}).get("mean", 0.0) if base else None
+    base_benign = base["benign_rate"] if base else None
 
     board = []
     for name, s in settings.items():
         if name == "none":
             continue
         hop2 = s["hop_rates"].get("2", {}).get("mean", 0.0)
-        cut = round((1 - hop2 / base_hop2) * 100) if base_hop2 > 0 else 0
-        kept = round(s["benign_rate"] / base_benign * 100) if base_benign > 0 else 0
-        board.append({"team": name, "def": name, "cut": cut, "kept": kept, "pass": s["pass_rule"]["result"] == "PASS"})
+        if base_hop2 is None or base_benign is None:
+            # No baseline: cut/kept are meaningless without a reference run.
+            cut, kept = None, None
+        else:
+            cut = round((1 - hop2 / base_hop2) * 100) if base_hop2 > 0 else 0
+            kept = round(s["benign_rate"] / base_benign * 100) if base_benign > 0 else 0
+        board.append(
+            {
+                "team": name,
+                "def": name,
+                "cut": cut,
+                "kept": kept,
+                "verdict": VERDICTS.get(s["pass_rule"]["result"], "fail"),
+                "pass": s["pass_rule"]["result"] == "PASS",
+            }
+        )
     stats = {
         "submitted": len(board),
         "passing": sum(1 for r in board if r["pass"]),
-        "bestCut": max((r["cut"] for r in board if r["pass"]), default=0),
+        "bestCut": max((r["cut"] for r in board if r["pass"] and r["cut"] is not None), default=0),
     }
     return board, stats
 

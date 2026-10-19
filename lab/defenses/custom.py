@@ -2,7 +2,7 @@
 
 It is a Strands lifecycle ``HookProvider`` with the same interface as the
 lab's own defenses, so it is built, run and scored exactly like them
-(``--defense custom`` or ``--settings all,custom``).
+(``--settings none,custom``).
 
 Edit ``on_before_tool_call`` and/or ``on_after_tool_call`` below. The two
 levers a hook has:

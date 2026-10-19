@@ -34,7 +34,7 @@ import yaml
 
 from .agents import build_session_agent
 from .constants import DEFAULT_MODEL_ID
-from .gateway import Gateway
+from .gateway import REPLAY_CACHE, Gateway
 from .memory import MemoryBackend
 
 LAB_ROOT = Path(__file__).resolve().parent
@@ -287,6 +287,12 @@ def main(argv: list[str] | None = None) -> int:
         help="'all' for baseline + each defense, or a comma-separated setting list",
     )
     parser.add_argument("--mode", choices=["fixtures", "replay", "live"], default="fixtures")
+    parser.add_argument(
+        "--replay-cache",
+        default=None,
+        help="replay cache path (default: replay/cache.jsonl; live mode records to replay/cache-live.jsonl "
+        "so live responses never collide with the committed fixtures cache)",
+    )
     parser.add_argument("--trials", type=int, default=1)
     parser.add_argument("--seed", choices=sorted(SEED_FAMILIES), default="standing")
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
@@ -320,7 +326,9 @@ def main(argv: list[str] | None = None) -> int:
 
     run_id = args.run_id or datetime.now(timezone.utc).strftime(f"%Y%m%d-%H%M%S-{args.topology}-{args.mode}")
     run_dir = RUNS_DIR / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
+    if run_dir.exists():
+        parser.error(f"run dir already exists: {run_dir} - pick a new --run-id or delete the folder")
+    run_dir.mkdir(parents=True)
 
     # The fixtures registry is setting-independent: same prompts, same plans;
     # defenses change the conversation, not the scripts.
@@ -328,7 +336,14 @@ def main(argv: list[str] | None = None) -> int:
 
     registry = fixtures.build_registry(scenario, benign, args.seed)
 
-    gateway = Gateway(args.mode, registry=registry, record=args.record)
+    if args.replay_cache:
+        cache_path = Path(args.replay_cache)
+    elif args.mode == "live":
+        cache_path = REPLAY_CACHE.parent / "cache-live.jsonl"  # live recordings stay out of the committed cache
+    else:
+        cache_path = None  # gateway default: replay/cache.jsonl
+
+    gateway = Gateway(args.mode, registry=registry, record=args.record, cache_path=cache_path)
     gateway_url = gateway.start()
     try:
         run_meta = {

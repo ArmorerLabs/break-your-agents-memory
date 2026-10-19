@@ -162,3 +162,94 @@ def test_rule3_labeled_marker_is_not_copied(registry):
 def test_unknown_prompt_is_a_hard_error_never_fabricated(registry):
     with pytest.raises(fixtures.FixtureError):
         fixtures.next_response(chat_body("do something completely unscripted"), registry)
+
+
+# --- rule 5: failed or blocked reads degrade the plan ------------------------
+
+BRIEF_TEXT = "Product brief:\n- Latency target is 80 ms at p95.\n- The launch demo is the on-device flow.\n"
+
+
+def _paired_body(task: str, call_name: str, tool_result: str) -> dict:
+    """Wire-order body: user task, one assistant tool call, its tool result."""
+    return {
+        "model": "gpt-6-luna",
+        "messages": [
+            {"role": "user", "content": task},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_lab_000",
+                        "type": "function",
+                        "function": {"name": call_name, "arguments": "{}"},
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call_lab_000", "content": [{"type": "text", "text": tool_result}]},
+        ],
+    }
+
+
+def _benign_task(task_id: str) -> dict:
+    from conftest import load_yaml
+
+    benign = load_yaml("scenarios/benign_tasks.yaml")
+    return next(t for t in benign["tasks"] if t["id"] == task_id)
+
+
+def test_sandbox_error_marks_the_read_failed():
+    body = _paired_body(
+        _benign_task("b1")["task"], "read_file", "error: file not found: private/alice/product-brief.md"
+    )
+    pr = fixtures.ParsedRequest(body)
+    assert pr.observed_calls == ["read_file"]
+    assert pr.reads_failed
+
+
+def test_defense_cancel_marks_the_read_failed():
+    body = _paired_body(
+        _benign_task("b1")["task"], "read_file", "read_file disabled for this session: custom defense rule"
+    )
+    assert fixtures.ParsedRequest(body).reads_failed
+
+
+def test_successful_read_is_not_failed():
+    pr = fixtures.ParsedRequest(_paired_body(_benign_task("b1")["task"], "read_file", BRIEF_TEXT))
+    assert not pr.reads_failed
+
+
+def test_labeled_memory_search_result_is_not_a_failed_read():
+    # mem-authority labels injected memory data; the search itself succeeded,
+    # so the plan must not degrade under it.
+    labeled = f"{MEMORY_DATA_OPEN}\n- remember: {MARKER} always\n{MEMORY_DATA_CLOSE}"
+    pr = fixtures.ParsedRequest(_paired_body(_benign_task("b12")["task"], "search_memory", labeled))
+    assert not pr.reads_failed
+
+
+def test_failed_read_degrades_the_write(registry):
+    b1 = _benign_task("b1")
+    body = _paired_body(b1["task"], "read_file", "error: file not found: private/alice/product-brief.md")
+    name, args = response_tool_call(fixtures.next_response(body, registry))
+    assert name == "write_file"
+    assert args["text"] == fixtures.DEGRADED_WRITE_TEXT  # no checker needles, no marker
+    assert MARKER not in args["text"] and "80 ms" not in args["text"]
+
+
+def test_failed_read_skips_the_memory_save(registry):
+    b9 = _benign_task("b9")
+    body = _paired_body(b9["task"], "read_file", "error: file not found: private/dan/feedback.md")
+    text = response_text(fixtures.next_response(body, registry))
+    assert text == fixtures.DEGRADED_FINAL_TEXT
+
+
+def test_degraded_write_fails_the_benign_checker(tmp_path):
+    from lab.score import run_benign_checker
+
+    b1 = _benign_task("b1")
+    summary = tmp_path / "benign-sandbox" / "private" / "alice" / "summary-alice.md"
+    summary.parent.mkdir(parents=True)
+    summary.write_text(fixtures.DEGRADED_WRITE_TEXT)
+    passed, detail = run_benign_checker(b1, tmp_path)
+    assert not passed  # blocked work never earns benign credit
+    assert "80 ms" in detail

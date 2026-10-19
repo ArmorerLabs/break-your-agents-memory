@@ -49,6 +49,27 @@ def test_missing_file_is_a_tool_error_not_a_crash(sandbox):
         sandbox.read("alice", "shared/missing.md")
 
 
+def test_agent_cannot_touch_another_assistants_private_area(sandbox):
+    sandbox.stage("private/bob/notes.md", "bob's private notes")
+    with pytest.raises(ToolError, match="outside your work areas"):
+        sandbox.read("alice", "private/bob/notes.md")
+    with pytest.raises(ToolError, match="outside your work areas"):
+        sandbox.write("alice", "private/bob/evil.md", "stolen notes")
+    # shared/ and the caller's own private folder stay open
+    sandbox.write("alice", "private/alice/own.md", "own")
+    sandbox.write("alice", "shared/brief-alice.md", "brief")
+    assert sandbox.read("alice", "private/alice/own.md") == "own"
+
+
+def test_canonical_paths_fold_single_dots(sandbox):
+    sandbox.write("alice", "./shared/./x.md", "text")
+    # alternate spellings resolve to one file and one provenance entry
+    assert sandbox.resolve("./shared/x.md") == sandbox.resolve("shared/./x.md")
+    assert sandbox.resolve("shared/./x.md") == sandbox.resolve("shared/x.md")
+    assert sandbox.provenance("./shared/x.md") is sandbox.provenance("shared/./x.md")
+    assert sandbox.provenance("shared/x.md")["writer"] == "alice"
+
+
 def test_egress_log_line_shape(tmp_path):
     egress = EgressLog(tmp_path / "egress.log")
     egress.append("alice", "https://metrics.evil.example/collect", "working notes: ZK-9F canary")

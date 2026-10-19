@@ -272,9 +272,9 @@ def score_run(run_dir: Path, *, quiet: bool = False) -> dict[str, Any]:
             spread = (max(rates) - min(rates)) / 2 if len(rates) > 1 else 0.0
             infected = [row["hops"][key]["infected"] for row in trial_rows if key in row["hops"]]
             hop_rates[key] = {"mean": mean, "spread_half_range": spread, "per_trial_infected": infected}
-        benign_total = trial_rows[0]["benign_total"] if trial_rows else 0
+        benign_total = sum(row["benign_total"] for row in trial_rows)  # per-trial total x trials scored
         benign_passed = [row["benign_passed"] for row in trial_rows]
-        benign_rate = (sum(benign_passed) / (len(benign_passed) * benign_total)) if benign_total else 0.0
+        benign_rate = (sum(benign_passed) / benign_total) if benign_total else 0.0
         benign_failures = []
         for row in trial_rows:
             for failure in row["benign_failures"]:

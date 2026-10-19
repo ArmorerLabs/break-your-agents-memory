@@ -4,6 +4,12 @@
   const M = window.MOCK;
   const el = (id) => document.getElementById(id);
 
+  // Every data-sourced string is escaped before it lands in innerHTML.
+  // Transcript text can carry the poisoned file's contents - never raw HTML.
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[c]);
+
   // The evidence note: what kind of numbers these are (scripted / recorded / measured).
   el("evidencenote").textContent = "\u00b7 " + M.evidence;
 
@@ -13,9 +19,13 @@
     ["Mode", M.run.mode],
     ["Model", M.run.model],
     ["Trial", M.run.trial],
-  ].map(([k, v]) => `<span class="pill">${k}: <b>${v}</b></span>`).join("");
+  ].map(([k, v]) => `<span class="pill">${k}: <b>${esc(v)}</b></span>`).join("");
 
   el("graphsub").textContent = M.graph.sub;
+  el("graphtitle").textContent =
+    M.run.topology === "team"
+      ? "Team topology: one seed, five assistants, one shared memory"
+      : "Chain topology: one seed, five assistants, five users";
 
   // ---------- The graph ----------
   // Visual language from the Armorer console attack map: a node is a rect on --panel with a hairline,
@@ -62,8 +72,8 @@
     return `<g>
       <rect x="${x}" y="${y}" width="${nodeW}" height="${nodeH}" rx="10" fill="var(--panel)" stroke="${st.stroke}" stroke-width="${st.sw}"/>
       <text x="${x + 14}" y="${y + 23}" font-family="var(--font-mono)" font-size="11" letter-spacing="0.14em" fill="var(--muted)">HOP ${n.hop}</text>
-      <text x="${x + 14}" y="${y + 47}" font-size="18" font-weight="600" fill="var(--text)">${n.name}</text>
-      <text x="${x + 14}" y="${y + 63}" font-size="11" fill="var(--muted)">${n.user}</text>
+      <text x="${x + 14}" y="${y + 47}" font-size="18" font-weight="600" fill="var(--text)">${esc(n.name)}</text>
+      <text x="${x + 14}" y="${y + 63}" font-size="11" fill="var(--muted)">${esc(n.user)}</text>
       ${sigs}
       ${pill(x + nodeW - 96, y + 12, st)}
     </g>`;
@@ -74,35 +84,40 @@
     return `<g>
       <rect x="${x}" y="${y}" width="${seedW}" height="${seedH}" rx="10" fill="var(--warning-tint)" stroke="${st.stroke}" stroke-width="1.5"/>
       <text x="${x + 12}" y="${y + 21}" font-family="var(--font-mono)" font-size="11" letter-spacing="0.14em" fill="var(--muted)">SEED</text>
-      <text x="${x + 12}" y="${y + 43}" font-size="15" font-weight="600" fill="var(--text)">${s.name}</text>
-      <text x="${x + 12}" y="${y + 61}" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">${s.file}</text>
+      <text x="${x + 12}" y="${y + 43}" font-size="15" font-weight="600" fill="var(--text)">${esc(s.name)}</text>
+      <text x="${x + 12}" y="${y + 61}" font-family="var(--font-mono)" font-size="11" fill="var(--muted)">${esc(s.file)}</text>
       ${pill(x + 12, y + 68, st)}
     </g>`;
   }
 
   // Horizontal edge with arrowhead and an uppercase mono label under the line, paper-haloed.
   function hedge(x1, x2, y, e) {
+    if (!e) return "";
     const gap = x2 - x1;
     const c = Math.max(8, Math.min(40, gap * 0.4));
     const marker = e.marker === true, pending = e.marker === null;
     const color = marker ? "var(--danger)" : pending ? "var(--line-control)" : "var(--line-strong)";
     const halo = marker ? `<path d="M${x1},${y} C${x1 + c},${y} ${x2 - c},${y} ${x2},${y}" fill="none" stroke="var(--danger)" stroke-width="8" stroke-opacity="0.14"/>` : "";
     const label = e.label && !pending
-      ? `<text x="${(x1 + x2) / 2}" y="${y - 7}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.75" font-weight="500" letter-spacing="0.08em" fill="${marker ? "var(--danger)" : "var(--muted)"}" stroke="var(--bg)" stroke-width="4" paint-order="stroke">${e.label.toUpperCase()}</text>`
+      ? `<text x="${(x1 + x2) / 2}" y="${y - 7}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.75" font-weight="500" letter-spacing="0.08em" fill="${marker ? "var(--danger)" : "var(--muted)"}" stroke="var(--bg)" stroke-width="4" paint-order="stroke">${esc(e.label.toUpperCase())}</text>`
       : pending ? `<text x="${(x1 + x2) / 2}" y="${y - 7}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.75" letter-spacing="0.08em" fill="var(--muted)">\u22ef</text>` : "";
     return `<g>${halo}<path d="M${x1},${y} C${x1 + c},${y} ${x2 - c},${y} ${x2},${y}" fill="none" stroke="${color}" stroke-width="1.5"/>
       <path d="M${x2 + 1},${y} l-9 -5 l0 10 z" fill="${color}"/>${label}</g>`;
   }
 
   // The wrap edge: end of row 1 down and back to the start of row 2, like a line return.
+  // Only drawn when the topology has one (team runs have 3 flat edges, no wrap).
   function wrapEdge(x1, ya, x2, yb, e) {
+    if (!e) return "";
     const marker = e.marker === true;
     const color = marker ? "var(--danger)" : "var(--line-strong)";
     const yTop = ya, yBot = yb;
     const midY = (yTop + yBot) / 2;
     const d = `M${x1},${yTop} C${x1},${midY} ${x2},${midY} ${x2},${yBot}`;
     const halo = marker ? `<path d="${d}" fill="none" stroke="var(--danger)" stroke-width="8" stroke-opacity="0.14"/>` : "";
-    const label = `<text x="${(x1 + x2) / 2}" y="${midY - 6}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.75" font-weight="500" letter-spacing="0.08em" fill="${marker ? "var(--danger)" : "var(--muted)"}" stroke="var(--bg)" stroke-width="4" paint-order="stroke">${e.label.toUpperCase()}</text>`;
+    const label = e.label
+      ? `<text x="${(x1 + x2) / 2}" y="${midY - 6}" text-anchor="middle" font-family="var(--font-mono)" font-size="10.75" font-weight="500" letter-spacing="0.08em" fill="${marker ? "var(--danger)" : "var(--muted)"}" stroke="var(--bg)" stroke-width="4" paint-order="stroke">${esc(e.label.toUpperCase())}</text>`
+      : "";
     return `<g>${halo}<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/>
       <path d="M${x2},${yBot + 1} l-5 -9 l10 0 z" fill="${color}"/>${label}</g>`;
   }
@@ -113,8 +128,8 @@
     hedge(sx + seedW, a1x, mid1, M.graph.edges[0]),
     hedge(a1x + nodeW, a2x, mid1, M.graph.edges[1]),
     wrapEdge(a2x + nodeW / 2, y1 + nodeH, b1x + nodeW / 2, y2, M.graph.edges[2]),
-    hedge(b1x + nodeW, b2x, mid2, M.graph.edges[3]),
-    hedge(b2x + nodeW, b3x, mid2, M.graph.edges[4]),
+    M.graph.edges[3] ? hedge(b1x + nodeW, b2x, mid2, M.graph.edges[3]) : "",
+    M.graph.edges[4] ? hedge(b2x + nodeW, b3x, mid2, M.graph.edges[4]) : "",
   ].join("");
 
   const nodesSvg = [
@@ -140,19 +155,19 @@
   // ---------- KPI strip inside the graph card ----------
   el("kpis").innerHTML = M.kpis.map((k) => `
     <div class="kpi">
-      <div class="label">${k.label}</div>
-      <div class="value">${k.value}</div>
-      <div class="note">${k.note}</div>
+      <div class="label">${esc(k.label)}</div>
+      <div class="value">${esc(k.value)}</div>
+      <div class="note">${esc(k.note)}</div>
     </div>`).join("");
 
   // ---------- The transcript: one session at a time, in order ----------
   el("lines").innerHTML = M.log.map((l) => {
     if (l.kind === "session") {
-      return `<div class="tl session"><span class="t">${l.t}</span><span>${l.who}</span><span>hop ${l.hop}</span><span class="rule"></span><span class="note">${l.note}</span></div>`;
+      return `<div class="tl session"><span class="t">${esc(l.t)}</span><span>${esc(l.who)}</span><span>hop ${l.hop}</span><span class="rule"></span><span class="note">${esc(l.note)}</span></div>`;
     }
-    const tag = l.tag ? ` <span class="tag ${l.tag[0]}">${l.tag[1]}</span>` : "";
-    if (l.kind === "say") return `<div class="tl say">${l.text}</div>`;
-    if (l.kind === "tool") return `<div class="tl tool"><span class="name">${l.name}</span>(<span class="arg">${l.arg}</span>)</div>`;
-    return `<div class="tl result">${l.text}${tag}</div>`;
+    const tag = l.tag ? ` <span class="tag ${l.tag[0]}">${esc(l.tag[1])}</span>` : "";
+    if (l.kind === "say") return `<div class="tl say">${esc(l.text)}</div>`;
+    if (l.kind === "tool") return `<div class="tl tool"><span class="name">${esc(l.name)}</span>(<span class="arg">${esc(l.arg)}</span>)</div>`;
+    return `<div class="tl result">${esc(l.text)}${tag}</div>`;
   }).join("");
 })();

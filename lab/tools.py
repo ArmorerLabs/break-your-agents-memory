@@ -28,7 +28,16 @@ class ToolError(Exception):
 
 
 class Sandbox:
-    """Path jail + provenance for one trial's file area."""
+    """Path jail + provenance for one trial's file area.
+
+    Two rules, enforced on every agent operation (``read``/``write``):
+
+    - the path stays inside the jail (no absolute, no traversal, no escape),
+    - the path stays inside the caller's own areas: ``shared/`` or
+      ``private/<assistant>/``. One assistant cannot touch another's private
+      folder - the ``assistant`` argument is the authority, not a hint. The
+      runner's ``stage()`` is exempt (it stages the corpus).
+    """
 
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
@@ -38,23 +47,39 @@ class Sandbox:
         if meta_path.exists():
             self.meta = json.loads(meta_path.read_text())
 
+    def canonical(self, rel: str) -> str:
+        """Canonical sandbox-relative form: no ``.``/``..``/empty segments.
+
+        ``./shared/x.md`` and ``shared/./x.md`` both canonicalize to
+        ``shared/x.md`` - provenance is recorded once, under the canonical
+        key, so alternate spellings cannot dodge the shared-strict defense.
+        """
+        if not rel or rel.startswith("/") or rel.startswith(chr(92)):
+            raise ToolError(f"error: path must be sandbox-relative, got {rel!r}")
+        parts = [q for q in PurePosixPath(rel).parts if q not in (".", "")]
+        if not parts:
+            raise ToolError(f"error: path must be sandbox-relative, got {rel!r}")
+        if ".." in parts:
+            raise ToolError(f"error: path traversal is not allowed, got {rel!r}")
+        return "/".join(parts)
+
     def resolve(self, rel: str) -> Path:
         """Jail-check a sandbox-relative path and return its absolute Path."""
-        if not rel or rel.startswith("/") or rel.startswith("\\"):
-            raise ToolError(f"path must be sandbox-relative, got {rel!r}")
-        parts = PurePosixPath(rel).parts
-        if ".." in parts:
-            raise ToolError(f"path traversal is not allowed, got {rel!r}")
-        target = (self.root / Path(*parts)).resolve()
-        root = self.root
-        if not target.is_relative_to(root):
-            raise ToolError(f"path escapes the sandbox, got {rel!r}")
+        target = (self.root / Path(*self.canonical(rel).split("/"))).resolve()
+        if not target.is_relative_to(self.root):
+            raise ToolError(f"error: path escapes the sandbox, got {rel!r}")
         return target
+
+    def check_area(self, assistant: str, rel: str) -> None:
+        """Agent operations stay in shared/ or the assistant's private folder."""
+        c = self.canonical(rel)
+        if not (c.startswith("shared/") or c.startswith(f"private/{assistant}/")):
+            raise ToolError(f"error: path is outside your work areas (shared/ or private/{assistant}/), got {rel!r}")
 
     # -- provenance ----------------------------------------------------------
 
     def _entry(self, rel: str) -> dict[str, Any]:
-        return self.meta.setdefault(rel, {"writer": None, "readers": []})
+        return self.meta.setdefault(self.canonical(rel), {"writer": None, "readers": []})
 
     def record_write(self, rel: str, writer: str) -> None:
         self._entry(rel)["writer"] = writer
@@ -73,6 +98,7 @@ class Sandbox:
     # -- operations used by the tools -----------------------------------------
 
     def read(self, assistant: str, rel: str) -> str:
+        self.check_area(assistant, rel)
         path = self.resolve(rel)
         if not path.is_file():
             raise ToolError(f"error: file not found: {rel}")
@@ -80,6 +106,7 @@ class Sandbox:
         return path.read_text()
 
     def write(self, assistant: str, rel: str, text: str) -> None:
+        self.check_area(assistant, rel)
         path = self.resolve(rel)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)

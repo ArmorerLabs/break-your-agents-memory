@@ -20,6 +20,7 @@ against a *shared memory scope* - see the ``team`` topology for that finding.
 
 from __future__ import annotations
 
+from pathlib import PurePosixPath
 from typing import Any
 
 from strands.hooks import HookProvider, HookRegistry
@@ -79,8 +80,8 @@ class SharedStrictDefense(HookProvider):
         if event.duration is None:  # canceled before execution: nothing to wrap
             return
         path = str(event.tool_use.get("input", {}).get("path", ""))
-        if not path.startswith("shared/"):
-            return
+        if not PurePosixPath(path).as_posix().startswith("shared/"):
+            return  # normalize first: "./shared/x" and "shared/./x" are shared too
         # Pull the tool's text out of the result content blocks.
         result = event.result
         if isinstance(result, dict):
