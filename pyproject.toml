@@ -1,0 +1,33 @@
+[project]
+name = "break-your-agents-memory"
+version = "0.1.0"
+description = "Break Your Agent's Memory: a sandboxed workshop lab that measures how one poisoned document spreads through agent memory, files and uploads, and what each defense costs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Cristian Leo" }]
+dependencies = [
+    # Real harness components. Versions pinned at calibration (see docs/SCOPE.md).
+    "strands-agents>=1.61.1",
+    "mem0ai>=2.2.1",
+    "mem0-strands>=0.1.1",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
