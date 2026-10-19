@@ -52,14 +52,10 @@ def test_chain_golden_matrix(tmp_path, monkeypatch):
     # shared-strict blocks a preference saved after a popular-file read.
     memscreen = _setting(summary, "memscreen")
     assert memscreen["benign_passed"] == 11 and len(memscreen["benign_failures"]) == 1
-    assert "Friday" in json.dumps(memscreen["benign_failures"]) and "5pm" in json.dumps(
-        memscreen["benign_failures"]
-    )
+    assert "Friday" in json.dumps(memscreen["benign_failures"]) and "5pm" in json.dumps(memscreen["benign_failures"])
     strict = _setting(summary, "shared-strict")
     assert strict["benign_passed"] == 11 and len(strict["benign_failures"]) == 1
-    assert "Thursdays" in json.dumps(strict["benign_failures"]) and "10am" in json.dumps(
-        strict["benign_failures"]
-    )
+    assert "Thursdays" in json.dumps(strict["benign_failures"]) and "10am" in json.dumps(strict["benign_failures"])
     # mem-authority costs nothing in this suite
     assert _setting(summary, "mem-authority")["benign_passed"] == 12
 
