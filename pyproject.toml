@@ -20,6 +20,11 @@ dev = [
     "ruff>=0.6",
 ]
 
+[tool.setuptools]
+# Explicit package list: flat-layout discovery would also pick up
+# replay/, dashboard/ and notebooks/ and refuse to build.
+packages = ["lab", "lab.defenses"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py310"

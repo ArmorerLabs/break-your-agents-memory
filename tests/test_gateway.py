@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 
 import pytest
-from conftest import chain_registry
+from conftest import chain_registry, load_yaml
 
 from lab.constants import EMBED_DIM
 from lab.gateway import Gateway, embed_text, request_hash
@@ -88,7 +88,7 @@ def test_any_two_lab_vectors_clear_mem0_threshold():
 
 # --- HTTP behavior ------------------------------------------------------------
 
-TASK = "Please review the documents in your private folder and note anything worth remembering for future sessions."
+TASK = next(s["task"] for s in load_yaml("scenarios/chain.yaml")["sessions"] if s["id"] == "S1")
 
 
 @pytest.fixture(scope="module")
