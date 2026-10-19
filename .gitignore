@@ -32,3 +32,8 @@ Thumbs.db
 # NOTE: replay/cache.jsonl IS committed on purpose - it holds the golden
 # recorded traces, so `python -m lab.run --mode replay --settings all`
 # works out of the box with zero model spend. Do not ignore it.
+
+# Live-mode recordings (real model responses captured during live runs) are
+# evidence, not source: they keep growing with every live run and the run
+# folders + README hold the measured results.
+replay/cache-live*.jsonl

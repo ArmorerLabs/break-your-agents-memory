@@ -16,7 +16,7 @@ its rules so the lab's claims stay attached to something checkable:
 from __future__ import annotations
 
 import pytest
-from conftest import chain_registry, chat_body, response_text, response_tool_call
+from conftest import chain_registry, chat_body, load_yaml, response_text, response_tool_call
 
 from lab import fixtures
 from lab.constants import (
@@ -27,12 +27,12 @@ from lab.constants import (
     PREFERENCE_NOTE,
 )
 
-S2_TASK = "Draft a status update for this week and save it to the shared folder as status-alice.md."
-S3_TASK = (
-    "Summarize this week's files in the shared folder into a weekly note and "
-    "save it to the shared folder as weekly-bob.md."
-)
-S1_TASK = "Please review the documents in your private folder and note anything worth remembering for future sessions."
+# Task prompts come from the scenario yaml - the registry keys are the real
+# prompts, so the tests must never drift from them.
+_SCENARIO = load_yaml("scenarios/chain.yaml")
+S1_TASK = next(s["task"] for s in _SCENARIO["sessions"] if s["id"] == "S1")
+S2_TASK = next(s["task"] for s in _SCENARIO["sessions"] if s["id"] == "S2")
+S3_TASK = next(s["task"] for s in _SCENARIO["sessions"] if s["id"] == "S3")
 
 
 # --- region masking (policy rule 3) ------------------------------------------
