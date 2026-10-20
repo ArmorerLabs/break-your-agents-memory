@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Break Your Agent's Memory — workshop (local prototype)</title>
+<style>
+  :root { --ink:#16130e; --paper:#f6f2ea; --card:#fffdf8; --line:#d8d0bf; --accent:#b3541e; --ok:#1e7a34; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--ink); }
+  header, main, footer { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+  header { padding-top: 40px; }
+  h1 { font-size: 2.4rem; margin: 0 0 8px; line-height: 1.1; }
+  h2 { margin-top: 40px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+  .kicker { text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; color: var(--accent); font-weight: bold; }
+  .banner { background:#fdf3e0; border:1px solid var(--accent); padding:10px 14px; border-radius:6px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  .card h3 { margin-top:0; }
+  .time { font-family: ui-monospace, monospace; font-size:.85rem; color:var(--accent); }
+  .btn { display:inline-block; padding:12px 18px; border-radius:6px; border:2px solid var(--ink);
+         text-decoration:none; color:var(--ink); font-weight:bold; margin: 6px 8px 6px 0; background:var(--card); }
+  .btn.primary { background:var(--ink); color:var(--paper); }
+  .btn.disabled { opacity:.55; }
+  img.shot { width:100%; border:1px solid var(--line); border-radius:8px; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.9em; }
+  ol.steps li { margin-bottom: 8px; }
+  footer { color:#6b6455; font-size:.9rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">[un]prompted workshop · 2 hours · local prototype — not deployed</div>
+  <h1>Break Your Agent's Memory</h1>
+  <p>One poisoned document spreads through five AI assistants' <strong>memory, shared files,
+     and uploads</strong> — hop by hop. Hour 1 is the lesson. Hour 2 is hands-on: run the lab,
+     trace the canary, turn on defenses, then build your own.</p>
+  <p class="banner"><strong>Status:</strong> everything on this page runs locally. The Colab launch
+     button uses Google's official deep-link pattern, but the repo is currently <em>private</em> —
+     Colab can only open it friction-free once a public workshop mirror is published
+     (decision pending). Until then, use the local notebook button.</p>
+</header>
+
+<main>
+  <h2>Hour 1 — the lesson (slides placeholder)</h2>
+  <p>Replace these cards with the real deck later. A slide deck (Google Slides / PDF) can be
+     embedded on this page; a live Colab notebook cannot — Colab sends
+     <span class="mono">X-Frame-Options: DENY</span>, so the hands-on hour launches in a new tab.</p>
+  <div class="grid">
+    <div class="card"><div class="time">0:00–0:05</div><h3>The hook</h3><p>One poisoned document, one harmless canary, live on the projector.</p></div>
+    <div class="card"><div class="time">0:05–0:20</div><h3>How agent memory works</h3><p>Memory writes, shared files, uploads — and what a “hop” means.</p></div>
+    <div class="card"><div class="time">0:20–0:35</div><h3>Attack patterns</h3><p>Poison that enters through legitimate work (preference extraction); shared memory vs shared files.</p></div>
+    <div class="card"><div class="time">0:35–0:50</div><h3>Defenses and their costs</h3><p>The pass rule and the measured live-calibration results — including the honest failures.</p></div>
+    <div class="card"><div class="time">0:50–1:00</div><h3>Setup + break</h3><p>Everyone launches the notebook and runs the setup cell. Checkpoint: “stack ok” on every screen.</p></div>
+  </div>
+
+  <h2>Hour 2 — hands-on</h2>
+  <p>The notebook <em>is</em> the workshop: baseline run → trace the canary hop by hop →
+     built-in defenses → the team topology failure → build your own defense → replay.
+     Checkpoints are built into the notebook; facilitators walk the room against them.</p>
+
+  <p>
+    <a class="btn primary" href="../notebooks/workshop.ipynb">Open workshop.ipynb (local)</a>
+    <a class="btn" href="../notebooks/workshop-preview.html">Read the executed preview</a>
+    <a class="btn disabled" href="https://colab.research.google.com/github/ArmorerLabs/break-your-agents-memory/blob/main/notebooks/workshop.ipynb"
+       title="Works once a public workshop mirror exists">Launch in Colab (pending public mirror)</a>
+  </p>
+  <p class="mono">Local, from the repo root: pip install -e ".[dev]" · jupyter notebook notebooks/workshop.ipynb<br>
+     Colab later: the same file — its setup cell detects Colab, clones the repo, and installs it there.</p>
+
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><strong>This page</strong> (later: our own website) holds the lesson, the story, and the launch button.</li>
+    <li><strong>Colab is the backend:</strong> the button opens each participant's <em>own copy</em> of the notebook on Google's machines — no install, no shared-VM collisions, saved to their Drive.</li>
+    <li><strong>The lab runs offline at $0</strong> (fixtures/replay), so nobody needs an API key. Live mode is optional, bring-your-own-key.</li>
+    <li><strong>Scores are computed in the notebook</strong> from the run folders — the same scorer, the same pass rule, evidence labels included.</li>
+  </ol>
+
+  <h2>The scoreboard (committed run)</h2>
+  <p>The projector dashboard renders real run folders. This screenshot is from a committed run;
+     the live views are at <a href="../dashboard/index.html?view=live">Live run</a> ·
+     <a href="../dashboard/index.html?view=score">Scoreboard</a> ·
+     <a href="../dashboard/index.html?view=board">Leaderboard</a> when you serve the repo locally.</p>
+  <img class="shot" src="../dashboard/shots/score.png" alt="Dashboard scoreboard: infection by hop versus benign cost, per defense">
+
+  <h2>If the platform fails</h2>
+  <div class="grid">
+    <div class="card"><h3>Colab slow</h3><p>Pair up on one laptop. Runs take seconds; the bottleneck is sign-in, not compute.</p></div>
+    <div class="card"><h3>Colab down</h3><p>GitHub Codespaces (the repo ships a devcontainer), or a local <span class="mono">pip install</span> from a zip.</p></div>
+    <div class="card"><h3>Everything down</h3><p>Facilitator runs the baseline on the projector in replay mode; the room traces the committed screenshots.</p></div>
+  </div>
+</main>
+
+<footer>
+  <p>Local prototype for the “Break Your Agent's Memory” workshop. Nothing here is deployed.
+     Evidence honesty: fixtures = scripted, replay = recorded, live = measured — every score
+     table carries its label. Repo: <span class="mono">notebooks/workshop.ipynb</span> ·
+     <span class="mono">dashboard/</span> · <span class="mono">README.md</span> (“Live calibration”).</p>
+</footer>
+</body>
+</html>

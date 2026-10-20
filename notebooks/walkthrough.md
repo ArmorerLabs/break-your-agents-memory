@@ -1,5 +1,9 @@
 # Break Your Agent's Memory: guided walkthrough
 
+> **The hands-on workshop now lives in `workshop.ipynb`** (same material,
+> runnable locally or in Colab, with checkpoints). This text version stays
+> as the no-Jupyter fallback.
+
 This notebook-shaped guide walks the workshop in order. It is plain
 Python on purpose (no Jupyter magic): run it top to bottom, or paste each
 block into a REPL or notebook as you go.
@@ -11,7 +15,7 @@ Everything here runs **offline at $0** in fixtures mode.
 ```bash
 pip install -e ".[dev]"
 python - <<'PY'
-import strands, mem0ai, mem0_strands, yaml  # the real stack, importable
+import strands, mem0, mem0_strands, yaml  # the real stack, importable
 print("stack ok")
 PY
 ```

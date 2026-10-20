@@ -162,6 +162,28 @@ provenance metadata (writer + readers per file), the per-assistant memory
 snapshots, and `benign.json` (12 fixed-rule benign task results). The
 scorer reads exactly those files - no model graders anywhere.
 
+## The workshop notebook and local site
+
+The hands-on hour lives in `notebooks/workshop.ipynb` (33 cells: baseline →
+trace the canary → built-in defenses → team topology → build your own
+defense → replay, with facilitator checkpoints). The same file runs three
+ways: locally in Jupyter, in Google Colab (its setup cell detects Colab,
+clones, and installs — that path needs a public repo/mirror), and as an
+executed read-only preview at `notebooks/workshop-preview.html`.
+`notebooks/walkthrough.md` is the same material as plain text.
+
+A local prototype of the future workshop website is in `site/` (not
+deployed): lesson outline, notebook launch, scoreboard. Serve the repo
+root and open it:
+
+```bash
+python -m http.server 8000   # http://localhost:8000/site/
+```
+
+A live Colab notebook cannot be embedded in that page — Colab sends
+`X-Frame-Options: DENY` — so the site links out to each participant's own
+Colab copy; everything else (slides, preview, dashboard) embeds fine.
+
 ## Building your own defense (the workshop exercise)
 
 Edit `lab/defenses/custom.py` **in place** (it is already registered as the
@@ -195,7 +217,7 @@ part of the lab).
 
 ```bash
 pip install -e ".[dev]"
-pytest            # 61 tests, fully offline, ~45s: golden matrices, defense units, scorer rules
+pytest            # 65 tests, fully offline, ~45s: golden matrices, defense units, scorer rules, notebook guard
 ruff check .       # lint
 ```
 
@@ -205,7 +227,7 @@ ruff check .       # lint
 lab/            the lab itself (gateway, fixtures, tools, memory, agents, defenses, scenarios, corpus, run, score)
 tests/          offline test suite (golden end-to-end + units)
 dashboard/      the projector dashboard (reads real run folders)
-notebooks/      a guided walkthrough notebook
+notebooks/      the hands-on workshop notebook (+ text walkthrough and executed preview)
 replay/         committed golden traces (replay mode works out of the box)
 docs/           SCOPE.md and ARCHITECTURE.md - the design and its honesty rules
 runs/           outputs (gitignored; reproduce any of them)
