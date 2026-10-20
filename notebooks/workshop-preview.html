@@ -8142,7 +8142,7 @@ exactly the files the scorer reads.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>+ lab.run --no-record --run-id ws-baseline-1792460403
+<pre>+ lab.run --no-record --run-id ws-baseline-1792460952
 </pre>
 </div>
 </div>
@@ -8327,7 +8327,7 @@ numbers surprise you:</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>+ lab.run --no-record --run-id ws-matrix-1792460405 --settings all
+<pre>+ lab.run --no-record --run-id ws-matrix-1792460955 --settings all
 </pre>
 </div>
 </div>
@@ -8386,7 +8386,7 @@ nothing about a shared store.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>+ lab.run --no-record --run-id ws-matrix-team-1792460411 --topology team --settings all
+<pre>+ lab.run --no-record --run-id ws-matrix-team-1792460961 --topology team --settings all
 </pre>
 </div>
 </div>
@@ -8511,7 +8511,7 @@ example inside.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">CUSTOM_DEFENSE_CODE</span> <span class="o">=</span> <span class="s2">"""</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">CUSTOM_DEFENSE_CODE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"""</span>
 <span class="s2"># Your defense - written from the workshop notebook.</span>
 <span class="s2"># Edit freely; the write cell below saves this over lab/defenses/custom.py and</span>
 <span class="s2"># the next run scores it like a built-in (--settings none,custom).</span>
@@ -8607,8 +8607,8 @@ Edit CUSTOM_DEFENSE_CODE above, then run the next cell.
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">target</span> <span class="o">=</span> <span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"lab/defenses/custom.py"</span>
+<span class="nb">compile</span><span class="p">(</span><span class="n">CUSTOM_DEFENSE_CODE</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="s2">"exec"</span><span class="p">)</span>  <span class="c1"># reject syntax errors before replacing the file</span>
 <span class="n">target</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">CUSTOM_DEFENSE_CODE</span><span class="p">)</span>
-<span class="nb">compile</span><span class="p">(</span><span class="n">CUSTOM_DEFENSE_CODE</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="s2">"exec"</span><span class="p">)</span>  <span class="c1"># fail loudly on a syntax error before the run does</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"wrote"</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">ROOT</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Restore the shipped template later with:  git checkout -- lab/defenses/custom.py"</span><span class="p">)</span>
 </pre></div>
@@ -8651,7 +8651,7 @@ Restore the shipped template later with:  git checkout -- lab/defenses/custom.py
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>+ lab.run --no-record --run-id ws-custom-1792460416 --settings none,custom
+<pre>+ lab.run --no-record --run-id ws-custom-1792460966 --settings none,custom
 </pre>
 </div>
 </div>
@@ -8721,7 +8721,7 @@ recorded traces with identical scores and the evidence label
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>+ lab.run --no-record --run-id ws-replay-1792460420 --mode replay --settings all
+<pre>+ lab.run --no-record --run-id ws-replay-1792460969 --mode replay --settings all
 </pre>
 </div>
 </div>
@@ -8779,7 +8779,7 @@ fails live</strong>, because preference-shaped poison survives being labeled "da
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">RUN_LIVE</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set True only with your own key in place</span>
 
-<span class="k">if</span> <span class="n">IN_COLAB</span> <span class="ow">and</span> <span class="s2">"OPENAI_API_KEY"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">RUN_LIVE</span> <span class="ow">and</span> <span class="n">IN_COLAB</span> <span class="ow">and</span> <span class="s2">"OPENAI_API_KEY"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">google.colab</span><span class="w"> </span><span class="kn">import</span> <span class="n">userdata</span>
 
@@ -8789,7 +8789,7 @@ fails live</strong>, because preference-shaped poison survives being labeled "da
         <span class="nb">print</span><span class="p">(</span><span class="s2">"no Colab Secret named OPENAI_API_KEY (fine — the workshop is offline by default)"</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">RUN_LIVE</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"OPENAI_API_KEY"</span><span class="p">):</span>
-    <span class="n">live</span> <span class="o">=</span> <span class="n">run_lab</span><span class="p">(</span><span class="s2">"ws-live"</span><span class="p">,</span> <span class="s2">"--mode"</span><span class="p">,</span> <span class="s2">"live"</span><span class="p">,</span> <span class="s2">"--settings"</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span> <span class="s2">"--trials"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">)</span>
+    <span class="n">live</span> <span class="o">=</span> <span class="n">run_lab</span><span class="p">(</span><span class="s2">"ws-live"</span><span class="p">,</span> <span class="s2">"--mode"</span><span class="p">,</span> <span class="s2">"live"</span><span class="p">,</span> <span class="s2">"--record"</span><span class="p">,</span> <span class="s2">"--settings"</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span> <span class="s2">"--trials"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"live skipped — set RUN_LIVE = True with your own OPENAI_API_KEY to measure instead of script."</span><span class="p">)</span>
 </pre></div>
@@ -8853,7 +8853,7 @@ notebook copy is saved via <strong>File → Save a copy in Drive</strong>.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>wrote workshop-runs-1792460425.zip (652 KB, 5 runs)
+<pre>wrote workshop-runs-1792460975.zip (652 KB, 5 runs)
 You leave with: this notebook, the zip above, your custom defense (lab/defenses/custom.py), and the score tables.
 </pre>
 </div>
@@ -8871,7 +8871,7 @@ You leave with: this notebook, the zip above, your custom defense (lab/defenses/
 <li><strong>Colab slow / runtime lost:</strong> pair up on one laptop; re-run from §0 — runs are seconds.</li>
 <li><strong><code>run dir already exists</code>:</strong> the helpers auto-suffix run ids; just re-run the cell.</li>
 <li><strong>No Google account / no Colab:</strong> run this same notebook locally
-(<code>pip install -e ".[dev]"</code>, then Jupyter), or use the repo's devcontainer
+(<code>pip install -e ".[workshop]"</code>, then Jupyter), or use the repo's devcontainer
 (GitHub Codespaces) — same cells, same numbers.</li>
 <li><strong>Everything down:</strong> facilitator runs §2 on the projector in replay mode and
 the room traces the committed <code>dashboard/shots/</code> screenshots.</li>
